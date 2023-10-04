@@ -1,0 +1,133 @@
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <script src="https://unpkg.com/pdf-lib@1.4.0"></script>
+    <script src="https://unpkg.com/downloadjs@1.4.7"></script>
+    <!-- add bootstrap css-->
+    <title>Kursuskode på PDF</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <!-- Bootstrap Datepicker CSS -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/css/bootstrap-datepicker.min.css">
+
+</head>
+
+<body>
+    <div class="container mt-5" style="max-width: 600px;">
+
+        <div class="card p-5">
+            <h1 class="mb-4 text-center">Kursuskode på PDF</h1>
+            <div class="mb-3">
+                <label for="fileInput" class="form-label">File</label>
+                <input type="file" required class="form-control" id="fileInput" name="file">
+            </div>
+            <div class="mb-3">
+                <label for="courseInput" class="form-label">Kursus Kode</label>
+                <input type="text" required class="form-control" id="courseInput" name="kursus">
+            </div>
+            <div class="mb-3">
+                <label for="newNameInput" class="form-label">evt. Nyt filnavn</label>
+                <input type="text" class="form-control" id="newNameInput" name="newNameInput">
+            </div>
+
+
+            <button onclick="modifyPdf()" class="btn btn-primary">Download</button>
+
+        </div>
+
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap JS (Optional, if you need dropdowns, modals, etc.) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+<script>
+    const { degrees, PDFDocument, rgb, StandardFonts } = PDFLib
+
+
+    async function modifyPdf() {
+
+        //get access to local pdf file
+        const file = document.getElementById("fileInput").files[0];
+        //get input field values
+        const kursus = document.getElementById("courseInput").value;
+        const filnavn = document.getElementById("newNameInput").value;
+
+        var newname;
+        //creating new name for modified file
+        
+        if (filnavn != "") {
+            newname = filnavn + ".pdf";
+        } else {
+            newname = file.name.replace(".pdf", "_stamped.pdf");
+        }
+        //read the file
+        const reader = new FileReader();
+        reader.readAsArrayBuffer(file);
+        //wait for file to be read
+        reader.onload = async () => {
+            //create pdfDoc object
+            const pdfDoc = await PDFDocument.load(reader.result);
+            //get font
+            const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+            // Embed the PNG image bytes- base64 encoded string of msj logo
+            const pngImage = await pdfDoc.embedPng('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANEAAADRCAYAAABSOlfvAAAACXBIWXMAAC4jAAAuIwF4pT92AAASPElEQVR4nO3dX2xU150H8G9W1cxLx6mG+MF/UvBDZmTXJlLtlWwwKX4gsRbWWbWJ2bBbInVho+6qRipElahSQaMmqmpXgqpq0iSVynad4tKo8ZIWNw+gYIIf7JVinEF2HwzJ4HkARu1MXjwv9OGXG0z8h5k559xzzp3vR7LSOHDmdma+9/y5588Dd17BHRBRtY7/g+0rIPIdQ0SkiCEiUsQQESliiIgUMUREihgiIkUMEZEihohIEUNEpIghIlLEEBEpYoiIFDFERIoYIiJFDBGRIoaISBFDRKSIISJSxBARKWKIiBQxRESKGCIiRQwRkSKGiEgRQ0SkiCEiUvQF2xdAABKtQN0j8r9vTQLL+Y3/fNOA/PPGuNnrorIwRGGp7wWSXwUSXwYeagdiDwIN3av/3Nkn7x+OPW/f++/FLPBJFih+BBQ/BnLvAYW/AMWr+q6f1sUQmRBPAo17gMYdwKb2tcOiU6JZfj57ncPyj1IByF0Gbs1JsFhzGcEQ6dI0AGz5Z6BxG5Bss301IlYHbH5CfoJgXZ8Ali4Bi2dYU2nCEKlo2Q9s2Q1s6ZcvrA+CUPX8EMhngMU/AfNvMFAKGKJK1fcCqWeB1KA/wVlPsk1+Og9LoGZfBa795v4DG3QPhqhc6SFg63PuNNV0S7YBO08AOAEsjAFzPwNuTtq+Ki8wRBuJJ4GOo0Bqr3Tca0VqUH5yU8DMyxyQuA+GaC1BeDoO+t9kU9HQLcPp+Qww/WNg8ZTtK3ISZyysFE8CXcPAvkXpJ9RygFZKtgGP/xoYuHz3QS99hiEKpIeAb3zA8GwkqJkGLsssCwLAEMlo28Bl6VTXUr9HRUM3sC8jtXY8aftqrKvdEAVNt69fND+jIKo6D0vtXeNNvNoMUdPA3aYbqUk0SxNv+2s1WyvVXoi6huVDZ9NNr/YDNVsr1U6IEq3A0x+y9jEpqJW6hm1fSahqI0Qt+4GnpqI728A1nYdlsKZGmnfRD1HXsDzj4LB1uBq6pXlX32v7SoyLbojiSaDvNJtvNiWagT3vSEsgwqIZongSGLgo87/IrlidtATSQ7avxJjohSgIEPs/btl5QobBIyhaE1Dre4Fdb7o/fF3MAvkPZdn27Vmg9NfyNigJvPrA3aHkhseA+IPhLENX1X5Aaqbze21fiVbRCVF9r7S/XRxAyGeApfeBpYvA0lk9i96C5QmfX6ZQ3ws09AGN24GGHvfej6CJHaEgRSNELgbo+gSw+Edg6d1wl17fnJSf2U//Pdj7YXO/OzV0xIL0wJ1XcMf2RSiJJ2Uo1YUvSDELzP3S3U1AmgaA1L+5M+CyMBaFIB33O0SuDCL4tgI0ngTS/w20/6f9m8/MCDB9xO41qPE8RE9/aDdAC2PA9DE3a51ypYeAzufthunCIWD+pL3XV3Pc3yHuvtP2ApSbAt7aIU0RnwMEyJd39GH5IpcKdq5h5wmvJ676GaKuYTvt+mJWtvkd74neTjjzJ4HRFmle2fD4/3i7Wta/ELXstzOVZ2YE+P2j/vR7qrGcl/7JWzuktg1TrA7oP+PlpFW/QpRoBXb+LNzXzGfkSzV9pHY2Nbw5KbVt2LVSsg3Y9otwX1MDv0LUfybcZ0FzrwPjO6LXdCtXUCvlM+G9ZmrQu3l2/oSoazi8gYRSQTralw7WTu2znpuTciO5PhHea2570av+kR8hahoIrx9UzAJnd/s85Krfch441x9e8y7oH3nC/RDFk8DXfh7Oa+UzMnhQq823+5k+IjV0GJJt3iwzdz9EHUfDeRCYm5JmS6033+5n/qT0k8J4ptR52Itmndshqu8Npxm3MCajUQxQeW5OSpM3jCD1/cr8ayhyO0Q9PzH/GtGYBBm+sILU0O38aJ27IUoPmV9klptigFSEFaTO551+COtmiOJJeeNMymeAid1mX6MW3JwELnzH7GskmqVv7Cg3Q2R6MKFU4CCCTounzI/adRx0dpDBvRDFk/KGmVIqSBOEAdJr/qTM8DAlVgd0HTNXvgL3QtRx1OzUnvdf4HMgUy4dNDtxNTXoZG3kVohM10ILY5yJYNqE4YEGB2sjt0JkshYqZoH3v22mbLprOW92oCE16NxInWMhMlgLvfsM+0FhWTxltn/k2EidOyFKD5mrhWZG2A8K2/T3pPY3weTNtgruhGjrc2bKLWaBKy+ZKZvWt5wHLn/fTNmxOqdmMbgRovpec2uFLn+fzThbFk+ZG61LP2Om3Cq4sQNq6lkz5eam5IPUpWlA9r6uBfNv6NnJ6Py35KRx3Rq6Zbjbgd2WHAmRoZ17Zl7WW17DY7Vz3lHuPT1f0OJVebRg4jPe+l15NmWZ/eZcy34zAwq5qWjvzOOT6WNmyt3cb6bcCtkP0RZDk0B110JUvaA20i3R7MRxlg6EyMDdhLWQe0zVRqb60xWwGyJTTbkr/u1dFnnFq2Z2DHKgSWc3RI079JdZzOodkSN95kf1l5lotj4p1XKItukvc+G0/jJJj8VTZmYxtDylv8wK2AtRotXMA9b5N/SXSfqYuMk1btdfZgXshahxl/4y8xknHr7RBkzc5Bp69JdZAXsheqhDf5nzv9VfJulVvKp/b+9YndWhbos1kYH+0KI/W8/WtKX39ZeZ/Kr+MstkL0S6+0Nsyvnj2v/pL9NEy6ZMdkJk4mhBE3c3MuPGuP4l5Jva9ZZXATsh+uIW/WUuXdRfJpmTu6y3PNMbfW7ATogSX9Zf5tJZ/WWSObfm9Jdp6aGrnRDpHtcvZrnwzje59/SXWfeI/jLLYH8Cqg6fGFrLT+bcMrDnxaZH9ZdZBjsh0t1+Xbqktzwybzmvf3Ah9qDe8soUjZqo+JHtK6Bq3Nb80DXxsN7yyhR+iEw8Wf7kmv4yyTzdNz8TA1ZlCD9EMQO7Vxb+or9MMq/4se0r0CIizTnOVCAAXwzhbN81WKiJvhT6S5KjdA9zh3FA9hrCD9GmrXrLM7VVLVGZ/G/O8RkRWeZ/iIgsY4iIFDFERIoYIiJF/odok6EjWYjKFH6IdD8bMHnSOJllYnGmBf7XROQv3XPdLD0zjEaILG8jS46w9Mww/BCVDKxAtbSikRRZ3rlUl/BDZOIU74i0rUmRpXVlEWnO2VlHQop0r3C2tLTCToh0nygdVrMgIs2Pspiu3U30Y2uqJir9TW95YTwratlvdW+z0G17EYgbWEAZeOgf9ZdpaYWzndPDb80Bm5/QV16szvxx7D0/Wv27C4eiszS947/u/UxidUDHUWD6iJnXM3HAm4kdhMpgJ0Qmqt3GXcC8oRBtfWH1gq98Bpg/aeb1bCjlV9/YOg4CV14ys6ef7m1/SwVrew/aac7l/19/mab6K/Ek0LnG3Xj2VTOvZ8vNydVHngS1kW7xpP6mse6dgypgJ0QmhrkbDBzVAgBdP149taiYjVYtFFjrxtBxUH/fqHGP3vIA4LaBbYnLZG+IW/cIXaJZ/3ZciVag/cDq30f1XNj5k6s3VIzVyY1Epy279ZYHALeu6C+zTPZCZOLO0dCnt7y+X639+ysv6X0dlyyMrf5d+wG9Q9ImWg1L7+ovs0z2QmTiKJT0v+orq2lg7Xb7wli0N8+f/enav+86pqf8+l79u/IUs1a3TbMzOgeYOQol2aZvqPtrP1//v3UNV1bW7Vmg9FelywlVMbv6i54aBKaPqb+37d9R+/trydk94M1eiJbzMhqk+9jJrd8FLh1UKyM9tP7dMjWoVrbPuo4B5/eqlbGlX8ul3MPygQZ2586ZOCJS9UseT8rTelotNajWN0oPmVlEabE/BNgOkYkDcGN18mFVq+MoV8tuZL3BlnKkn9F3HQEHDry2GyITB+ACQMs/Vff3Eq1A52G91xI1Dd3VHVxd32tm7uHin/SXWSF7faLAtXP6+hmlAjAzDMxW2Rxr3KX/+VUUNTwmN8BKFDLAzIj+m9T1P+gtrwoP3HkFd6xeQct+4PFfq5czM2Junhfpk2iVAQodN85iFhi1c7DXCsftL8pbPKW2wcT1CWC0TWYbM0DuK16VEb6zT6rX+nO/1HNNiuyHCACun6v87+Sm5IM412+9Y0lVuDEOjPcAf362+pvo4hm911QlN0K03lPytRSzso5nvKfydjm5Z/GUNMlmRiobZLo+4czN040QFa/ev2ovFeSN/v2j0ZxBXeumjwCjLcDc6+X9+flRs9dTATdCBADzb67/3xbG5A1mvyfalvMy22S0TWqa9RSzUoM5wqEQnVzdNs5NAW/tkI6oSnjSQ9U926DqqSxLKV6Vvu7ZJ1cvFAScGVAIuBMi4O6bU8zKGzjeo7aAr2kAePpDYOcJYNvLZjfeoLu2vgB8/SLQf05tmtCNceB3X5E+cHCDLRWA+Q0mB1tg/znRSvEksOXf1fs8iVaZnvL5J+Rzr6tPTqWN1fcCe965d+rU3OvA9PfUWhPxpEzJKv2t+ofpZhx3K0Sq4klZhbnWatTAhUMcmDAlngQGLq49M79UAK68Zm73IHsceNiqS9cwsG9x4wABMkNb9zJyEn2j6y9tidXJlJ99H8sslQjxP0TpIflgOg+XN/s6VgfsepP9I926hsvbSzDRLNO8Bi5HZrDH3xA1DcgHsfNE5cuNE83S7GCQ9EgPVT6xtKEb2PM20Hfa+6Nx/AtRolXe+D1vq02tT7YBT7yj77pqVXpIbmTVSg0C+zJSk3l6U/MnRPHkp/2ejL6lEw3dEkiqjmqAVuo8LH1alQWVlvgRovSQvMEmFsylBhmkaugMUCBWJ2Xu+9ir/pL7Idr6gryxJpdspwbloaynzYnQmQjQSonmu/0lD7gfotkX1576oVuyjYMN5QhuamG45kef1f0QAcCF58J5nWSbNBv5HGltfaeBnh+G81rXJ5yaZLoRP0J0c1KWQYQhVifTVjzs4BoTT0pzN6w990oF4Py+cF5LAz9CBMh0kbA2EQk6uH2n2bxrGpDaWfcmmxv58ze9WvLiT4gAYGK3mS221pMaBL7xQW027+JJYPtr0sEPcx++mRHvViz7FaLlPHDWwLEcG0k0y7T+7a/VTq3UNCA3j/vNQ9QtN+XlBFW/QgRI/+jCofBft/2AfLEiNnnyHolWWQO05239JzfcTzErLQ0P+RciQJYyrHWOjmkRnDwJ4O5skKem9B5IXa5SAXj3Ga/6QSv5vZ6o/5ydDz2QmwJmXvauDf+ZYKFbx0G7+4+ffdLf99D7RXkbLQILU24KuPILb55rINEqR9CkBu1v3u//IknPQwS4EyRA2vULp4H5N5zZE+0e6SHZ7N9m7b2S/wECIhEiwK0gBfIZYP63skunrUDFk3JS95bdcriW7VpnpWgECIhMiAA3gxQoZuVIxKVLciCVyVA1DcipDY3bzRxlosPMiJdD2euIUIgAt4O0UqkA3M7ICerFj4DbH8jvy+1cJ1qBukeA2JeATVuBh9qBxMPu//8GolQDBSIWIsCfIJUj2Gst7Gc2pkQvQECkdvsJLOeB8R0bb0Pri0RzNAJUKkQ1QAB8fdh6P8t52YbWxgNZulepIFO1IhogIKohCpzfa2eKEIl8BjjTrbYVtAeiHSJA7oBv7Qh39jdJK2B8h5vPyzSLfogAuROOtvBQ4zAE/R/Vkzw8UhshAj4dcOgBLv/A9pVEVz4T+f7PWmonRIHZF6V5F8bmJ7VkZkSOQYl4/2cttRciQD7o330lvH0boiyfkZtSdGYgVKw2QxSYPiJHG7KvVLngDN0arX1Wqu0QATJ6pHoUfK1ZGJOh6xqufVZiiALBUfAXDnE4fD0rz9CtgaHrcjFEnzd/UobDZ0YYpkBuSs8ZuhEVvQmouqWHgM7nozGHrVILY8DC//q8dDsMEZzFbUrLfqDj2+6u0dGlVJDwzP6UTbbyMEQVS7QC6f8AUnujVTtdnwAW/1hzD0o1YIiU1PcCqWeBzf1+BsqFJez+O/4F21fgtZuT8nMJEqjN/+L2suxSAbh2TpapX/tNzcxtM40h0iUIVGDlXgeb2uxsEpLPALfmZBl67jxH1gxhiEy5MX7vqFawL0LDY0D8QWBTOxCv07OMPZhxsXRJ9mz45BpH1ELEEIWleFV+1vty1/cCsQo2zL81yeaYIxgiV7Cp5S3OWCBSxBARKWKIiBQxRESKGCIiRQwRkSKGiEgRQ0SkiCEiUsQQESliiIgUMUREihgiIkUMEZEihohIEUNEpIghIlLEEBEpYoiIFDFERIoYIiJFDBGRIoaISBFDRKSIISJSxBARKWKIiBT9HSwQMZIwrZLHAAAAAElFTkSuQmCC')
+
+            // Get the width/height of the PNG image scaled down to 50% of its original size
+            const pngDims = pngImage.scale(0.3)
+
+            //get pages
+            const pages = pdfDoc.getPages();
+            //loop through pages
+            pages.forEach((page, i) => {
+                //get page size
+                const { width, height } = page.getSize();
+
+                //draw table
+                //draw background rectangle
+                page.drawRectangle({
+                    x: width - 170,
+                    y: height - 90,
+                    width: 150,
+                    height: 30,
+                    color: rgb(1, 1, 1),
+                    borderColor: rgb(0.972, 0.592, 0.113),
+                    borderWidth: 2,
+                });
+
+                // Draw the PNG image 
+                page.drawImage(pngImage, {
+                    x: width - 169,
+                    y: height - 90,
+                    width: 30,
+                    height: 30,
+                })
+
+                //draw values: kursus
+                page.drawText(kursus.toUpperCase(), {
+                    x: width - 119,
+                    y: height - 80,
+                    size: 14,
+                    font: helveticaFont,
+                    color: rgb(0.972, 0.592, 0.113),
+                });
+
+
+
+            });
+
+            //serialize pdfDoc to bytes
+            const pdfBytes = await pdfDoc.save();
+            //download pdfDoc
+            download(pdfBytes, newname, "application/pdf");
+        }
+    }
+</script>
+
+</html>
